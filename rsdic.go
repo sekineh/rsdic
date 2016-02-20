@@ -43,17 +43,17 @@ type RSDic struct {
 }
 
 // Num returns the number of bits
-func (rs RSDic) Num() uint64 {
+func (rs *RSDic) Num() uint64 {
 	return rs.num
 }
 
 // OneNum returns the number of ones in bits
-func (rs RSDic) OneNum() uint64 {
+func (rs *RSDic) OneNum() uint64 {
 	return rs.oneNum
 }
 
 // ZeroNum returns the number of zeros in bits
-func (rs RSDic) ZeroNum() uint64 {
+func (rs *RSDic) ZeroNum() uint64 {
 	return rs.zeroNum
 }
 
@@ -101,19 +101,19 @@ func (rs *RSDic) writeBlock() {
 	}
 }
 
-func (rs RSDic) lastBlockInd() uint64 {
+func (rs *RSDic) lastBlockInd() uint64 {
 	if rs.num == 0 {
 		return 0
 	}
 	return ((rs.num - 1) / kSmallBlockSize) * kSmallBlockSize
 }
 
-func (rs RSDic) isLastBlock(pos uint64) bool {
+func (rs *RSDic) isLastBlock(pos uint64) bool {
 	return pos >= rs.lastBlockInd()
 }
 
 // Bit returns the (pos+1)-th bit in bits, i.e. bits[pos]
-func (rs RSDic) Bit(pos uint64) bool {
+func (rs *RSDic) Bit(pos uint64) bool {
 	if rs.isLastBlock(pos) {
 		return getBit(rs.lastBlock, uint8(pos%kSmallBlockSize))
 	}
@@ -129,7 +129,7 @@ func (rs RSDic) Bit(pos uint64) bool {
 }
 
 // Rank returns the number of bit's in B[0...pos)
-func (rs RSDic) Rank(pos uint64, bit bool) uint64 {
+func (rs *RSDic) Rank(pos uint64, bit bool) uint64 {
 	if pos >= rs.num {
 		return bitNum(rs.oneNum, rs.num, bit)
 	}
@@ -158,7 +158,7 @@ func (rs RSDic) Rank(pos uint64, bit bool) uint64 {
 // Select returns the position of (rank+1)-th occurence of bit in B
 // Select returns num if rank+1 is larger than the possible range.
 // (i.e. Select(oneNum, true) = num, Select(zeroNum, false) = num)
-func (rs RSDic) Select(rank uint64, bit bool) uint64 {
+func (rs *RSDic) Select(rank uint64, bit bool) uint64 {
 	if bit {
 		return rs.Select1(rank)
 	} else {
@@ -166,7 +166,7 @@ func (rs RSDic) Select(rank uint64, bit bool) uint64 {
 	}
 }
 
-func (rs RSDic) Select1(rank uint64) uint64 {
+func (rs *RSDic) Select1(rank uint64) uint64 {
 	if rank >= rs.oneNum {
 		return rs.num
 	} else if rank >= rs.oneNum-rs.lastOneNum {
@@ -197,7 +197,7 @@ func (rs RSDic) Select1(rank uint64) uint64 {
 	return sblock*kSmallBlockSize + uint64(enumSelect1(code, rankSB, uint8(remain)))
 }
 
-func (rs RSDic) Select0(rank uint64) uint64 {
+func (rs *RSDic) Select0(rank uint64) uint64 {
 	if rank >= rs.zeroNum {
 		return rs.num
 	}
@@ -232,7 +232,7 @@ func (rs RSDic) Select0(rank uint64) uint64 {
 // BitAndRank returns the (pos+1)-th bit (=b) and Rank(pos, b)
 // Although this is equivalent to b := Bit(pos), r := Rank(pos, b),
 // BitAndRank is faster.
-func (rs RSDic) BitAndRank(pos uint64) (bool, uint64) {
+func (rs *RSDic) BitAndRank(pos uint64) (bool, uint64) {
 	if rs.isLastBlock(pos) {
 		offset := uint8(pos % kSmallBlockSize)
 		bit := getBit(rs.lastBlock, offset)
@@ -256,7 +256,7 @@ func (rs RSDic) BitAndRank(pos uint64) (bool, uint64) {
 }
 
 // AllocSize returns the allocated size in bytes.
-func (rsd RSDic) AllocSize() int {
+func (rsd *RSDic) AllocSize() int {
 	return len(rsd.bits)*8 +
 		len(rsd.pointerBlocks)*8 +
 		len(rsd.rankBlocks)*8 +
@@ -266,7 +266,7 @@ func (rsd RSDic) AllocSize() int {
 }
 
 // MarshalBinary encodes the RSDic into a binary form and returns the result.
-func (rsd RSDic) MarshalBinary() (out []byte, err error) {
+func (rsd *RSDic) MarshalBinary() (out []byte, err error) {
 	var bh codec.MsgpackHandle
 	enc := codec.NewEncoderBytes(&out, &bh)
 	err = enc.Encode(rsd.bits)
