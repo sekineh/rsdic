@@ -14,6 +14,9 @@ func TestEmptyRSDic(t *testing.T) {
 			So(rsd.ZeroNum(), ShouldEqual, 0)
 			So(rsd.OneNum(), ShouldEqual, 0)
 			So(rsd.Rank(0, true), ShouldEqual, 0)
+			So(rsd.Rank(0, false), ShouldEqual, 0)
+			So(rsd.Select(0, true), ShouldEqual, rsd.Num()) // Not Found
+			So(rsd.Select(0, false), ShouldEqual, rsd.Num()) // Not Found
 			So(rsd.AllocSize(), ShouldEqual, 0)
 		})
 	})
@@ -64,6 +67,10 @@ func runTestRSDic(name string, t *testing.T, rsd *RSDic, raw *rawBitVector) {
 		So(rsd.Num(), ShouldEqual, num)
 		So(rsd.OneNum(), ShouldEqual, oneNum)
 		So(rsd.Rank(num, true), ShouldEqual, oneNum)
+		So(rsd.Select(num, true), ShouldEqual, num) // Not Found
+		So(rsd.Select(num, false), ShouldEqual, num) // Not Found
+		So(rsd.Select(rsd.OneNum(), true), ShouldEqual, num) // Not Found
+		So(rsd.Select(rsd.ZeroNum(), false), ShouldEqual, num) // Not Found
 		for i := 0; i < testNum; i++ {
 			ind := uint64(rand.Int31n(int32(num)))
 			if i == 0 {
